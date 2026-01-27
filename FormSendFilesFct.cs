@@ -133,8 +133,6 @@ namespace SDRSharp.RTLTCP
             int sampleRateForceInt = GetSampleRateForce();
             long frequencyForce = GetfrequencyForce();
             listFrequency.Clear();
-            //comboBoxForceFrequency.Items.Clear();
-
             foreach (string file in Files)
             {
                 InfoFile d = new InfoFile();
@@ -252,7 +250,13 @@ namespace SDRSharp.RTLTCP
             {
                 _ = comboBoxForceFrequency.Items.Add(fr.ToString());
             }
-            comboBoxForceFrequency.SelectedItem = memoText;
+            if (comboBoxForceFrequency.Items.IndexOf(memoText) != -1)
+                comboBoxForceFrequency.SelectedItem = memoText;
+            else 
+            {
+                comboBoxForceFrequency.Items.Add("433920000");
+                comboBoxForceFrequency.SelectedItem = "433920000";
+            }
         }
         private bool ProcessUsedListSampleRate(int sampleRate, int sampleRateForceInt)
         {
@@ -521,7 +525,7 @@ namespace SDRSharp.RTLTCP
         {
             ClearSampleRateUsedList();
 
-            if (GetSampleRateForce() > 0 && !usedListSampleRate.Contains(GetSampleRateForce()))
+            if (GetSampleRateForce() > 0 && !usedListSampleRate.Contains(GetSampleRateForce()) )
                 usedListSampleRate.Add(GetSampleRateForce());
 
             int nbSR = usedListSampleRate.Count();
@@ -529,10 +533,6 @@ namespace SDRSharp.RTLTCP
             {
                 nbSR--;
             }
-
-            //radioButtonsSR = new System.Windows.Forms.RadioButton[nbSR];
-            //  var lbl = new ColorRadioButton { Text = "Nom", DisabledForeColor = Color.Red };
-            //  var btn = new ColorButton { Text = "OK", DisabledForeColor = Color.DarkBlue };
             radioButtonsSR = new ColorRadioButton[nbSR];
             labelNbFile = new ColorLabel[nbSR];
             int i = 0;

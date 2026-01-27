@@ -65,6 +65,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using ToolTip = System.Windows.Forms.ToolTip;
 
 namespace SDRSharp.RTLTCP
 {
@@ -230,7 +232,7 @@ namespace SDRSharp.RTLTCP
                         labelNbFile[j].Text = NBFilesKept.ToString();
                         j += 1;
                     }
-                }
+                  }
                 if(cpFilesWithoutFrequency > 0)
                     _ = MessageBox.Show($"You have {cpFilesWithoutFrequency} files without frequency; enter a forced frequency, otherwise they will be transmitted with a frequency of 0.", "Select files", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
@@ -241,9 +243,15 @@ namespace SDRSharp.RTLTCP
         private int GetNbKeptFiles()
         {
             int nbFile = 0;
-            foreach (Dictionary<string, InfoFile> SR in listOfListFiles)
+            int indice = 0;
+            //
+            foreach (ColorLabel Cl in labelNbFile)
             {
-                nbFile += SR.Count();
+                if(Cl.Text=="0")
+                    radioButtonsSR[indice].Enabled = false;
+                else
+                    nbFile += Int32.Parse(Cl.Text);
+                indice += 1;
             }
             return nbFile;
         }
@@ -450,7 +458,7 @@ namespace SDRSharp.RTLTCP
         {
             Clipboard.Clear();
             string text = string.Empty;
-            ListView.SelectedIndexCollection col = listViewConsole.SelectedIndices;
+            System.Windows.Forms.ListView.SelectedIndexCollection col = listViewConsole.SelectedIndices;
             if (col.Count > 0)
             {
                 foreach (int item in col)
