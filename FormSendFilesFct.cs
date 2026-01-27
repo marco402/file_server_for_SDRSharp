@@ -14,6 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -577,46 +578,116 @@ namespace SDRSharp.RTLTCP
         }
 
         #region color disables controls
-        public class ColorButton : Button, IDisabledColorControl
+
+    public class ColorButton : Button
+    {
+        public int BorderRadius { get; set; } = 6;
+        public Color DisabledForeColor { get; set; }
+        public Color BorderColor { get; set; } = Color.FromArgb(80, 80, 80);
+
+        private bool _hover;
+        private bool _pressed;
+
+        public ColorButton()
         {
-            public Color DisabledForeColor { get; set; } = Color.DarkGray;
+            SetStyle(ControlStyles.AllPaintingInWmPaint |
+                     ControlStyles.UserPaint |
+                     ControlStyles.OptimizedDoubleBuffer |
+                     ControlStyles.ResizeRedraw, true);
 
-            public ColorButton()
-            {
-                SetStyle(ControlStyles.AllPaintingInWmPaint |
-                         ControlStyles.UserPaint |
-                         ControlStyles.OptimizedDoubleBuffer |
-                         ControlStyles.ResizeRedraw, true);
-
-                FlatStyle = FlatStyle.Flat;
-            }
-
-            protected override void OnPaint(PaintEventArgs e)
-            {
-                var g = e.Graphics;
-
-                // Fond
-                using (var b = new SolidBrush(BackColor))
-                    g.FillRectangle(b, ClientRectangle);
-
-                // Bord
-                using (var p = new Pen(Color.FromArgb(80, 80, 80)))
-                    g.DrawRectangle(p, 0, 0, Width - 1, Height - 1);
-
-                // Texte
-                Color color = Enabled ? ForeColor : DisabledForeColor;
-
-                TextRenderer.DrawText(
-                    g,
-                    Text,
-                    Font,
-                    ClientRectangle,
-                    color,
-                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter
-                );
-            }
+            DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
         }
-        public class ColorRadioButton : RadioButton
+
+        protected override void OnBackColorChanged(EventArgs e)
+        {
+            base.OnBackColorChanged(e);
+            DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
+            Invalidate();
+        }
+
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            _hover = true;
+            Invalidate();
+            base.OnMouseEnter(e);
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            _hover = false;
+            _pressed = false;
+            Invalidate();
+            base.OnMouseLeave(e);
+        }
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            _pressed = true;
+            Invalidate();
+            base.OnMouseDown(e);
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            _pressed = false;
+            Invalidate();
+            base.OnMouseUp(e);
+        }
+
+        private GraphicsPath GetRoundRect(Rectangle r, int radius)
+        {
+            int d = radius * 2;
+            var path = new GraphicsPath();
+            path.AddArc(r.X, r.Y, d, d, 180, 90);
+            path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
+            path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
+            path.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            bool enabled = this.IsEffectivelyEnabled();
+            Color fore = enabled ? ForeColor : DisabledForeColor;
+
+            // Fond selon état
+            Color back = BackColor;
+
+            if (enabled)
+            {
+                if (_pressed)
+                    back = Color.FromArgb(back.R - 20, back.G - 20, back.B - 20);
+                else if (_hover)
+                    back = Color.FromArgb(back.R - 10, back.G - 10, back.B - 10);
+            }
+
+            Rectangle rect = new Rectangle(0, 0, Width - 1, Height - 1);
+
+            using (var path = GetRoundRect(rect, BorderRadius))
+            using (var b = new SolidBrush(back))
+                g.FillPath(b, path);
+
+            // Texte
+            TextRenderer.DrawText(
+                g,
+                Text,
+                Font,
+                rect,
+                fore,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter
+            );
+
+            // Bordure
+            using (var path = GetRoundRect(rect, BorderRadius))
+            using (var p = new Pen(BorderColor))
+                g.DrawPath(p, path);
+        }
+    }
+    public class ColorRadioButton : RadioButton
         {
             public Color DisabledForeColor { get; set; }
 
@@ -749,67 +820,81 @@ namespace SDRSharp.RTLTCP
                 );
             }
         }
-        public class ColorGroupBox : GroupBox
+public class ColorGroupBox : GroupBox
+    {
+        public int BorderRadius { get; set; } = 6;
+        public Color DisabledForeColor { get; set; }
+        public Color BorderColor { get; set; } = Color.FromArgb(80, 80, 80);
+
+        public ColorGroupBox()
         {
-            public Color DisabledForeColor { get; set; }
+            SetStyle(ControlStyles.UserPaint |
+                     ControlStyles.AllPaintingInWmPaint |
+                     ControlStyles.OptimizedDoubleBuffer, true);
 
-            public ColorGroupBox()
-            {
-                DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
-                SetStyle(ControlStyles.UserPaint |
-                         ControlStyles.AllPaintingInWmPaint |
-                         ControlStyles.OptimizedDoubleBuffer, true);
-            }
-
-            protected override void OnBackColorChanged(EventArgs e)
-            {
-                base.OnBackColorChanged(e);
-                DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
-                Invalidate();
-            }
-
-            protected override void OnPaint(PaintEventArgs e)
-            {
-                var g = e.Graphics;
-                g.Clear(BackColor);
-
-                bool enabled = this.IsEffectivelyEnabled();
-                Color textColor = enabled ? ForeColor : DisabledForeColor;
-
-                // Mesure du texte
-                Size textSize = TextRenderer.MeasureText(Text, Font);
-
-                // Rectangle du texte (classique GroupBox)
-                Rectangle textRect = new Rectangle(8, 0, textSize.Width + 2, textSize.Height);
-
-                // Rectangle du cadre
-                Rectangle borderRect = new Rectangle(
-                    0,
-                    textRect.Height / 2,
-                    Width - 1,
-                    Height - textRect.Height / 2 - 1
-                );
-
-                // Cadre
-                using (var pen = new Pen(textColor))
-                    g.DrawRectangle(pen, borderRect);
-
-                // Effacer le fond derrière le texte pour éviter la ligne qui passe dedans
-                using (var b = new SolidBrush(BackColor))
-                    g.FillRectangle(b, textRect);
-
-                // Texte
-                TextRenderer.DrawText(
-                    g,
-                    Text,
-                    Font,
-                    textRect,
-                    textColor,
-                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter
-                );
-            }
+            DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
         }
-        public static class ThemeHelper
+
+        protected override void OnBackColorChanged(EventArgs e)
+        {
+            base.OnBackColorChanged(e);
+            DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
+            Invalidate();
+        }
+
+        private GraphicsPath GetRoundRect(Rectangle r, int radius)
+        {
+            int d = radius * 2;
+            var path = new GraphicsPath();
+            path.AddArc(r.X, r.Y, d, d, 180, 90);
+            path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
+            path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
+            path.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            bool enabled = this.IsEffectivelyEnabled();
+            Color textColor = enabled ? ForeColor : DisabledForeColor;
+
+            // Mesure du texte
+            Size textSize = TextRenderer.MeasureText(Text, Font);
+            Rectangle textRect = new Rectangle(12, 0, textSize.Width + 4, textSize.Height);
+
+            // Cadre arrondi
+            Rectangle borderRect = new Rectangle(
+                0,
+                textRect.Height / 2,
+                Width - 1,
+                Height - textRect.Height / 2 - 1
+            );
+
+            using (var path = GetRoundRect(borderRect, BorderRadius))
+            using (var p = new Pen(BorderColor))
+                g.DrawPath(p, path);
+
+            // Effacer la ligne derrière le texte
+            using (var b = new SolidBrush(BackColor))
+                g.FillRectangle(b, textRect);
+
+            // Texte
+            TextRenderer.DrawText(
+                g,
+                Text,
+                Font,
+                textRect,
+                textColor,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter
+            );
+        }
+    }
+
+    public static class ThemeHelper
         {
             public static Color GetDisabledColor(Color background)
             {
