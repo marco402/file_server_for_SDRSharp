@@ -133,7 +133,7 @@ namespace SDRSharp.RTLTCP
             int sampleRateForceInt = GetSampleRateForce();
             long frequencyForce = GetfrequencyForce();
             listFrequency.Clear();
-            comboBoxForceFrequency.Items.Clear();
+            //comboBoxForceFrequency.Items.Clear();
 
             foreach (string file in Files)
             {
@@ -205,8 +205,8 @@ namespace SDRSharp.RTLTCP
                 }
             }
             else
-                 sampleRate = WavRecorder.GetSampleRateFromName(file);
- 
+                sampleRate = WavRecorder.GetSampleRateFromName(file);
+
 
             if (sampleRateForceInt == 0 && sampleRate == -1)   //case ignored file
                 return "-2";
@@ -245,11 +245,14 @@ namespace SDRSharp.RTLTCP
         }
         private void DisplayFrequency(List<long> frequency)
         {
+            string memoText = comboBoxForceFrequency.Text;
+            comboBoxForceFrequency.Items.Clear();
             frequency.Sort();
             foreach (long fr in frequency)
             {
                 _ = comboBoxForceFrequency.Items.Add(fr.ToString());
             }
+            comboBoxForceFrequency.SelectedItem = memoText;
         }
         private bool ProcessUsedListSampleRate(int sampleRate, int sampleRateForceInt)
         {
@@ -415,8 +418,8 @@ namespace SDRSharp.RTLTCP
             textBoxNEmissionForAllFiles.Enabled = stat;
             textBoxNEmissionForEachFile.Enabled = stat;
             textBoxTempoBetweenFile.Enabled = stat;
-            comboBoxForceSampleRate.Enabled = stat;
-            comboBoxForceFrequency.Enabled = stat;
+            comboBoxForceSampleRate.SetFakeEnabled(stat);
+            comboBoxForceFrequency.SetFakeEnabled(stat);
             buttonFilesSelect.Enabled = stat;
             buttonFolderSelect.Enabled = stat;
             groupBoxRbSr.Enabled = stat;
@@ -471,7 +474,7 @@ namespace SDRSharp.RTLTCP
                     ctrl.Dispose();
                     Controls.Remove(ctrl);
                 }
-            radioButtonsSR = null;
+                radioButtonsSR = null;
             }
             if (labelNbFile != null)
             {
@@ -482,14 +485,14 @@ namespace SDRSharp.RTLTCP
                 }
                 labelNbFile = null;
             }
-         }
+        }
         private const int _leftRD = 10;
         private const int _leftLB = 80;
         private const int _top = 15;
         private const int _space = 20;
-        private void AddControlSampleRate(System.Windows.Forms.RadioButton[] RB, System.Windows.Forms.Label[] LB, Int32 indice,Int32 sr)
+        private void AddControlSampleRate(System.Windows.Forms.RadioButton[] RB, System.Windows.Forms.Label[] LB, Int32 indice, Int32 sr)
         {
-            radioButtonsSR[indice] = new RadioButton
+            radioButtonsSR[indice] = new ColorRadioButton
             {
                 Text = sr.ToString(),
                 Location = new System.Drawing.Point(_leftRD, _top + (indice * _space)),
@@ -502,7 +505,7 @@ namespace SDRSharp.RTLTCP
             };
             radioButtonsSR[indice].CheckedChanged += new System.EventHandler(RadioButtonsSR_CheckedChanged);
             groupBoxRbSr.Controls.Add(radioButtonsSR[indice]);
-            labelNbFile[indice] = new Label
+            labelNbFile[indice] = new ColorLabel
             {
                 BackColor = labelSRForce.BackColor,
                 ForeColor = labelSRForce.ForeColor,
@@ -518,7 +521,7 @@ namespace SDRSharp.RTLTCP
         {
             ClearSampleRateUsedList();
 
-            if (GetSampleRateForce()>0 && !usedListSampleRate.Contains(GetSampleRateForce())) 
+            if (GetSampleRateForce() > 0 && !usedListSampleRate.Contains(GetSampleRateForce()))
                 usedListSampleRate.Add(GetSampleRateForce());
 
             int nbSR = usedListSampleRate.Count();
@@ -526,9 +529,12 @@ namespace SDRSharp.RTLTCP
             {
                 nbSR--;
             }
-            
-            radioButtonsSR = new System.Windows.Forms.RadioButton[nbSR];
-            labelNbFile = new System.Windows.Forms.Label[nbSR];
+
+            //radioButtonsSR = new System.Windows.Forms.RadioButton[nbSR];
+            //  var lbl = new ColorRadioButton { Text = "Nom", DisabledForeColor = Color.Red };
+            //  var btn = new ColorButton { Text = "OK", DisabledForeColor = Color.DarkBlue };
+            radioButtonsSR = new ColorRadioButton[nbSR];
+            labelNbFile = new ColorLabel[nbSR];
             int i = 0;
             foreach (int sr in usedListSampleRate)
             {
@@ -538,7 +544,7 @@ namespace SDRSharp.RTLTCP
                     i += 1;
                 }
             }
-            groupBoxRbSr.Height =  (2 * _top) + (i * _space);
+            groupBoxRbSr.Height = (2 * _top) + (i * _space);
             //groupBoxRbSr.Size = new System.Drawing.Size(482, (2 * _top) + (i * _space));
         }
         private int GetSampleRateForce()
@@ -569,5 +575,271 @@ namespace SDRSharp.RTLTCP
             public long Frequency { get; set; } = -1;
             public string SampleRate { get; set; } = string.Empty;
         }
+
+        #region color disables controls
+        public class ColorButton : Button, IDisabledColorControl
+        {
+            public Color DisabledForeColor { get; set; } = Color.DarkGray;
+
+            public ColorButton()
+            {
+                SetStyle(ControlStyles.AllPaintingInWmPaint |
+                         ControlStyles.UserPaint |
+                         ControlStyles.OptimizedDoubleBuffer |
+                         ControlStyles.ResizeRedraw, true);
+
+                FlatStyle = FlatStyle.Flat;
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                var g = e.Graphics;
+
+                // Fond
+                using (var b = new SolidBrush(BackColor))
+                    g.FillRectangle(b, ClientRectangle);
+
+                // Bord
+                using (var p = new Pen(Color.FromArgb(80, 80, 80)))
+                    g.DrawRectangle(p, 0, 0, Width - 1, Height - 1);
+
+                // Texte
+                Color color = Enabled ? ForeColor : DisabledForeColor;
+
+                TextRenderer.DrawText(
+                    g,
+                    Text,
+                    Font,
+                    ClientRectangle,
+                    color,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter
+                );
+            }
+        }
+        public class ColorRadioButton : RadioButton
+        {
+            public Color DisabledForeColor { get; set; }
+
+            public ColorRadioButton()
+            {
+                SetStyle(ControlStyles.UserPaint |
+                         ControlStyles.AllPaintingInWmPaint |
+                         ControlStyles.OptimizedDoubleBuffer, true);
+
+                DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                var g = e.Graphics;
+                g.Clear(BackColor);
+
+                bool enabled = this.IsEffectivelyEnabled();
+                Color color = enabled ? ForeColor : DisabledForeColor;
+
+                // Cercle
+                int diameter = Font.Height - 2;
+                int radius = diameter / 2;
+                int cx = 1 + radius;
+                int cy = Height / 2;
+
+                using (var pen = new Pen(color))
+                    g.DrawEllipse(pen, cx - radius, cy - radius, diameter, diameter);
+
+                if (Checked)
+                {
+                    using (var b = new SolidBrush(color))
+                    {
+                        int inner = diameter / 2;
+                        int ir = inner / 2;
+                        g.FillEllipse(b, cx - ir, cy - ir, inner, inner);
+                    }
+                }
+
+                // Texte
+                int textOffset = diameter + 6;
+                var textRect = new Rectangle(textOffset, 0, Width - textOffset, Height);
+
+                TextRenderer.DrawText(
+                    g,
+                    Text,
+                    Font,
+                    textRect,
+                    color,
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter
+                );
+            }
+        }
+        public class ColorListBox : ListBox
+        {
+            public Color DisabledForeColor { get; set; }
+
+            public ColorListBox()
+            {
+                DrawMode = DrawMode.OwnerDrawFixed;
+                DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
+            }
+
+            protected override void OnBackColorChanged(EventArgs e)
+            {
+                base.OnBackColorChanged(e);
+                DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
+                Invalidate();
+            }
+
+            protected override void OnDrawItem(DrawItemEventArgs e)
+            {
+                if (e.Index < 0)
+                    return;
+
+                bool enabled = this.IsEffectivelyEnabled();
+                Color textColor = enabled ? ForeColor : DisabledForeColor;
+
+                // Fond
+                Color back = BackColor;
+
+                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected && enabled)
+                    back = Color.FromArgb(BackColor.R - 10, BackColor.G - 10, BackColor.B - 10);
+
+                using (var b = new SolidBrush(back))
+                    e.Graphics.FillRectangle(b, e.Bounds);
+
+                // Texte
+                TextRenderer.DrawText(
+                    e.Graphics,
+                    Items[e.Index].ToString(),
+                    Font,
+                    e.Bounds,
+                    textColor,
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter
+                );
+            }
+        }
+        public class ColorLabel : Label
+        {
+            public Color DisabledForeColor { get; set; }
+
+            public ColorLabel()
+            {
+                DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
+                SetStyle(ControlStyles.UserPaint |
+                         ControlStyles.AllPaintingInWmPaint |
+                         ControlStyles.OptimizedDoubleBuffer, true);
+            }
+
+            protected override void OnBackColorChanged(EventArgs e)
+            {
+                base.OnBackColorChanged(e);
+                DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
+                Invalidate();
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                bool enabled = this.IsEffectivelyEnabled();
+                Color color = enabled ? ForeColor : DisabledForeColor;
+
+                TextRenderer.DrawText(
+                    e.Graphics,
+                    Text,
+                    Font,
+                    ClientRectangle,
+                    color,
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter
+                );
+            }
+        }
+        public class ColorGroupBox : GroupBox
+        {
+            public Color DisabledForeColor { get; set; }
+
+            public ColorGroupBox()
+            {
+                DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
+                SetStyle(ControlStyles.UserPaint |
+                         ControlStyles.AllPaintingInWmPaint |
+                         ControlStyles.OptimizedDoubleBuffer, true);
+            }
+
+            protected override void OnBackColorChanged(EventArgs e)
+            {
+                base.OnBackColorChanged(e);
+                DisabledForeColor = ThemeHelper.GetDisabledColor(this.BackColor);
+                Invalidate();
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                var g = e.Graphics;
+                g.Clear(BackColor);
+
+                bool enabled = this.IsEffectivelyEnabled();
+                Color textColor = enabled ? ForeColor : DisabledForeColor;
+
+                // Mesure du texte
+                Size textSize = TextRenderer.MeasureText(Text, Font);
+
+                // Rectangle du texte (classique GroupBox)
+                Rectangle textRect = new Rectangle(8, 0, textSize.Width + 2, textSize.Height);
+
+                // Rectangle du cadre
+                Rectangle borderRect = new Rectangle(
+                    0,
+                    textRect.Height / 2,
+                    Width - 1,
+                    Height - textRect.Height / 2 - 1
+                );
+
+                // Cadre
+                using (var pen = new Pen(textColor))
+                    g.DrawRectangle(pen, borderRect);
+
+                // Effacer le fond derrière le texte pour éviter la ligne qui passe dedans
+                using (var b = new SolidBrush(BackColor))
+                    g.FillRectangle(b, textRect);
+
+                // Texte
+                TextRenderer.DrawText(
+                    g,
+                    Text,
+                    Font,
+                    textRect,
+                    textColor,
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter
+                );
+            }
+        }
+        public static class ThemeHelper
+        {
+            public static Color GetDisabledColor(Color background)
+            {
+                // Calcul de luminance perceptuelle
+                double luminance =
+                    0.2126 * background.R +
+                    0.7152 * background.G +
+                    0.0722 * background.B;
+
+                // Si fond sombre → texte disabled clair
+                if (luminance < 128)
+                    return Color.FromArgb(180, 180, 180);
+
+                // Si fond clair → texte disabled foncé
+                return Color.FromArgb(100, 100, 100);
+            }
+        }
     }
+    public static class ControlExtensions
+    {
+        public static bool IsEffectivelyEnabled(this Control c)
+        {
+            while (c != null)
+            {
+                if (!c.Enabled)
+                    return false;
+                c = c.Parent;
+            }
+            return true;
+        }
+    }
+    #endregion
 }

@@ -34,7 +34,6 @@
             this.listViewConsole = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.groupBoxServer = new System.Windows.Forms.GroupBox();
-            this.groupBoxRbSr = new System.Windows.Forms.GroupBox();
             this.groupBoxTCPServer = new System.Windows.Forms.GroupBox();
             this.buttonMessagesToClipboard = new System.Windows.Forms.Button();
             this.checkBoxSubFolder = new System.Windows.Forms.CheckBox();
@@ -42,14 +41,10 @@
             this.labelFile = new System.Windows.Forms.Label();
             this.labelFreqForce = new System.Windows.Forms.Label();
             this.labelSRForce = new System.Windows.Forms.Label();
-            this.comboBoxForceFrequency = new System.Windows.Forms.ComboBox();
-            this.comboBoxForceSampleRate = new System.Windows.Forms.ComboBox();
             this.buttonStartRadio = new System.Windows.Forms.Button();
             this.labelNumFile = new System.Windows.Forms.Label();
             this.labelNbSendingForAllFiles = new System.Windows.Forms.Label();
             this.labelNbSendingForEachFile = new System.Windows.Forms.Label();
-            this.buttonFolderSelect = new System.Windows.Forms.Button();
-            this.buttonFilesSelect = new System.Windows.Forms.Button();
             this.textBoxTempoBetweenFile = new System.Windows.Forms.TextBox();
             this.textBoxNEmissionForAllFiles = new System.Windows.Forms.TextBox();
             this.labelTempoBetweenFile = new System.Windows.Forms.Label();
@@ -100,7 +95,6 @@
             // groupBoxServer
             // 
             this.groupBoxServer.AutoSize = true;
-            this.groupBoxServer.Controls.Add(this.groupBoxRbSr);
             this.groupBoxServer.Controls.Add(this.groupBoxTCPServer);
             this.groupBoxServer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxServer.Location = new System.Drawing.Point(3, 3);
@@ -108,16 +102,6 @@
             this.groupBoxServer.Size = new System.Drawing.Size(482, 307);
             this.groupBoxServer.TabIndex = 23;
             this.groupBoxServer.TabStop = false;
-            // 
-            // groupBoxRbSr
-            // 
-            this.groupBoxRbSr.AutoSize = true;
-            this.groupBoxRbSr.Location = new System.Drawing.Point(326, 20);
-            this.groupBoxRbSr.Name = "groupBoxRbSr";
-            this.groupBoxRbSr.Size = new System.Drawing.Size(144, 268);
-            this.groupBoxRbSr.TabIndex = 21;
-            this.groupBoxRbSr.TabStop = false;
-            this.groupBoxRbSr.Text = "Sample rate";
             // 
             // groupBoxTCPServer
             // 
@@ -127,14 +111,10 @@
             this.groupBoxTCPServer.Controls.Add(this.labelFile);
             this.groupBoxTCPServer.Controls.Add(this.labelFreqForce);
             this.groupBoxTCPServer.Controls.Add(this.labelSRForce);
-            this.groupBoxTCPServer.Controls.Add(this.comboBoxForceFrequency);
-            this.groupBoxTCPServer.Controls.Add(this.comboBoxForceSampleRate);
             this.groupBoxTCPServer.Controls.Add(this.buttonStartRadio);
             this.groupBoxTCPServer.Controls.Add(this.labelNumFile);
             this.groupBoxTCPServer.Controls.Add(this.labelNbSendingForAllFiles);
             this.groupBoxTCPServer.Controls.Add(this.labelNbSendingForEachFile);
-            this.groupBoxTCPServer.Controls.Add(this.buttonFolderSelect);
-            this.groupBoxTCPServer.Controls.Add(this.buttonFilesSelect);
             this.groupBoxTCPServer.Controls.Add(this.textBoxTempoBetweenFile);
             this.groupBoxTCPServer.Controls.Add(this.textBoxNEmissionForAllFiles);
             this.groupBoxTCPServer.Controls.Add(this.labelTempoBetweenFile);
@@ -211,26 +191,6 @@
             this.labelSRForce.TabIndex = 33;
             this.labelSRForce.Text = "Forced sample rate if not  in the name";
             // 
-            // comboBoxForceFrequency
-            // 
-            this.comboBoxForceFrequency.FormatString = "N0";
-            this.comboBoxForceFrequency.FormattingEnabled = true;
-            this.comboBoxForceFrequency.Location = new System.Drawing.Point(176, 78);
-            this.comboBoxForceFrequency.Name = "comboBoxForceFrequency";
-            this.comboBoxForceFrequency.Size = new System.Drawing.Size(129, 21);
-            this.comboBoxForceFrequency.TabIndex = 32;
-            this.comboBoxForceFrequency.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ComboBoxForceFrequency_KeyPress);
-            // 
-            // comboBoxForceSampleRate
-            // 
-            this.comboBoxForceSampleRate.FormatString = "N0";
-            this.comboBoxForceSampleRate.FormattingEnabled = true;
-            this.comboBoxForceSampleRate.Location = new System.Drawing.Point(176, 38);
-            this.comboBoxForceSampleRate.Name = "comboBoxForceSampleRate";
-            this.comboBoxForceSampleRate.Size = new System.Drawing.Size(129, 21);
-            this.comboBoxForceSampleRate.TabIndex = 32;
-            this.comboBoxForceSampleRate.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ComboBoxForceSampleRate_KeyPress);
-            // 
             // buttonStartRadio
             // 
             this.buttonStartRadio.Location = new System.Drawing.Point(6, 227);
@@ -267,26 +227,6 @@
             this.labelNbSendingForEachFile.Size = new System.Drawing.Size(24, 13);
             this.labelNbSendingForEachFile.TabIndex = 23;
             this.labelNbSendingForEachFile.Text = "0/0";
-            // 
-            // buttonFolderSelect
-            // 
-            this.buttonFolderSelect.Location = new System.Drawing.Point(6, 63);
-            this.buttonFolderSelect.Name = "buttonFolderSelect";
-            this.buttonFolderSelect.Size = new System.Drawing.Size(67, 36);
-            this.buttonFolderSelect.TabIndex = 18;
-            this.buttonFolderSelect.Text = "Folder select";
-            this.buttonFolderSelect.UseVisualStyleBackColor = false;
-            this.buttonFolderSelect.Click += new System.EventHandler(this.ButtonFolderSelect_Click);
-            // 
-            // buttonFilesSelect
-            // 
-            this.buttonFilesSelect.Location = new System.Drawing.Point(6, 19);
-            this.buttonFilesSelect.Name = "buttonFilesSelect";
-            this.buttonFilesSelect.Size = new System.Drawing.Size(67, 36);
-            this.buttonFilesSelect.TabIndex = 18;
-            this.buttonFilesSelect.Text = "Files select";
-            this.buttonFilesSelect.UseVisualStyleBackColor = false;
-            this.buttonFilesSelect.Click += new System.EventHandler(this.ButtonFilesSelect_Click);
             // 
             // textBoxTempoBetweenFile
             // 
@@ -371,12 +311,10 @@
         #endregion
         private System.Windows.Forms.TableLayoutPanel MainTableLayoutPanel;
         private System.Windows.Forms.GroupBox groupBoxServer;
-        private System.Windows.Forms.GroupBox groupBoxRbSr;
         private System.Windows.Forms.GroupBox groupBoxTCPServer;
         private System.Windows.Forms.Label labelNumFile;
         private System.Windows.Forms.Label labelNbSendingForAllFiles;
         private System.Windows.Forms.Label labelNbSendingForEachFile;
-        private System.Windows.Forms.Button buttonFilesSelect;
         private System.Windows.Forms.TextBox textBoxTempoBetweenFile;
         private System.Windows.Forms.TextBox textBoxNEmissionForAllFiles;
         private System.Windows.Forms.Label labelTempoBetweenFile;
@@ -385,16 +323,13 @@
         private System.Windows.Forms.Label labelNEmissionForEachFile;
         private System.Windows.Forms.Button buttonStartRadio;
         private System.Windows.Forms.Label labelSRForce;
-        private System.Windows.Forms.ComboBox comboBoxForceSampleRate;
         private System.Windows.Forms.Label labelFreqForce;
-        private System.Windows.Forms.ComboBox comboBoxForceFrequency;
         private System.Windows.Forms.Label labelFile;
         private System.Windows.Forms.ListView listViewConsole;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.Button buttonClearMessages;
         private System.Windows.Forms.Timer refreshTimer;
         private System.Windows.Forms.CheckBox checkBoxSubFolder;
-        private System.Windows.Forms.Button buttonFolderSelect;
         private System.Windows.Forms.Button buttonMessagesToClipboard;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialogChooseFolder;
     }

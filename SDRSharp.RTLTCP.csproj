@@ -180,6 +180,12 @@
       <DependentUpon>BetterFolderBrowser.cs</DependentUpon>
     </Compile>
     <Compile Include="ClassConstMessage.cs" />
+    <Compile Include="ClassCustomComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ClassDisabledColor.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ClassFunctionsVirtualListView.cs" />
     <Compile Include="ClassRaw.cs" />
     <Compile Include="ClassUtils.cs" />

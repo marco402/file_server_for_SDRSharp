@@ -57,7 +57,6 @@ of the Software.
  */
 
 using SDRSharp.Radio;
-//using SDRSharp.Rtl_433;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -85,14 +84,18 @@ namespace SDRSharp.RTLTCP
         private List<long> listFrequency = new List<long>();
         //list sample rate found in the files + sampleRateForce if > 0
         private readonly List<int> usedListSampleRate = new List<int>();
-        
-
-        private RadioButton[] radioButtonsSR;
-        private Label[] labelNbFile;
+        private ColorRadioButton[] radioButtonsSR;
+        private ColorLabel[] labelNbFile;
         private string sampleRateForce = string.Empty;
         private string frequencyForce = string.Empty;
         private string memoFolder = "C:\\";
         private Int32 cpFilesWithoutFrequency = 0;
+        private ColorButton buttonFilesSelect;
+        private ColorButton buttonFolderSelect;
+        private ColorGroupBox groupBoxRbSr;
+        //private ColorComboBox comboBoxForceFrequency;
+        private ColorComboBoxFakeDisabled comboBoxForceFrequency;
+        private ColorComboBoxFakeDisabled comboBoxForceSampleRate;
         #endregion
         #region init end
         public RTLTcpSettings(RtlTcpIO owner)
@@ -100,6 +103,7 @@ namespace SDRSharp.RTLTCP
             _owner = owner;
             _owner.MessageReceived += Server_MessageReceived;
             InitializeComponent();
+            InitColorControlForDisabled();
             InitVirtualListView();
             refreshTimer.Interval = 1000;
             ResetAllControlsBackColor(this);
@@ -114,10 +118,12 @@ namespace SDRSharp.RTLTCP
             sampleRate.Add(2400000);
             sampleRate.Add(2800000);
             sampleRate.Add(3200000);
+            string memoText = comboBoxForceSampleRate.Text;
             foreach (int sr in sampleRate)
             {
                 _ = comboBoxForceSampleRate.Items.Add(sr.ToString());
             }
+            comboBoxForceSampleRate.Text = memoText;
             ToolTip ttbuttonChooseFiles = new ToolTip();
             ttbuttonChooseFiles.SetToolTip(buttonFilesSelect, "Choose file(s) Wav or/and raw IQ.");
             ToolTip ttbuttonChooseFolder = new ToolTip();
@@ -136,8 +142,10 @@ namespace SDRSharp.RTLTCP
             textBoxNEmissionForEachFile.Text = Utils.GetStringSetting("RTLTCP.NEmEachFile", "1");
             textBoxNEmissionForAllFiles.Text = Utils.GetStringSetting("RTLTCP.NEmAllFile", "2");
             textBoxTempoBetweenFile.Text = Utils.GetStringSetting("RTLTCP.TempoBetwFile", "10");
-            comboBoxForceSampleRate.Text = Utils.GetStringSetting("RTLTCP.SampleRateForce", "1024000");
-            comboBoxForceFrequency.Text = Utils.GetStringSetting("RTLTCP.FrequencyForce", "100000000");
+            comboBoxForceSampleRate.Items.Add(Utils.GetStringSetting("RTLTCP.SampleRateForce", "1024000"));
+            comboBoxForceSampleRate.SelectedItem = comboBoxForceSampleRate.Items[0];
+            comboBoxForceFrequency.Items.Add(Utils.GetStringSetting("RTLTCP.FrequencyForce", "100000000"));
+            comboBoxForceFrequency.SelectedItem = comboBoxForceFrequency.Items[0];
         }
         private void RTLTcpSettings_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -149,19 +157,17 @@ namespace SDRSharp.RTLTCP
             Utils.SaveSetting("RTLTCP.NEmEachFile", textBoxNEmissionForEachFile.Text);
             Utils.SaveSetting("RTLTCP.NEmAllFile", textBoxNEmissionForAllFiles.Text);
             Utils.SaveSetting("RTLTCP.TempoBetwFile", textBoxTempoBetweenFile.Text);
-            if (comboBoxForceSampleRate.Text.Trim() == "") //if "" ->default value when GetStringSetting
+
+            if (comboBoxForceSampleRate.Text.Trim() != "")
             {
-                comboBoxForceSampleRate.Text = " ";
+                Utils.SaveSetting("RTLTCP.SampleRateForce", comboBoxForceSampleRate.Text);
             }
 
-            Utils.SaveSetting("RTLTCP.SampleRateForce", comboBoxForceSampleRate.Text);
-            if (comboBoxForceFrequency.Text.Trim() == "") //if "" ->default value when GetStringSetting
+            if (comboBoxForceFrequency.Text.Trim() != "") 
             {
-                comboBoxForceFrequency.Text = " ";
+                Utils.SaveSetting("RTLTCP.FrequencyForce", comboBoxForceFrequency.Text);
             }
-
-            Utils.SaveSetting("RTLTCP.FrequencyForce", comboBoxForceFrequency.Text);
-        }
+         }
         #endregion
         #region events form
         private void ButtonFilesSelect_Click(object sender, EventArgs e)
@@ -505,11 +511,30 @@ namespace SDRSharp.RTLTCP
         {
             try
             {
-                control.BackColor = BColor;
-                control.ForeColor = FColor;
+                if (control.Name == "comboBoxForceSampleRate")
+                {
+                    this.comboBoxForceSampleRate.DisabledBackColor = BColor;
+                    this.comboBoxForceSampleRate.DisabledForeColor = FColor;
+                    this.comboBoxForceSampleRate.BackColor = BColor;
+                    this.comboBoxForceSampleRate.ForeColor = FColor;
+                }
+                else if (control.Name == "comboBoxForceFrequency")
+                {
+                    this.comboBoxForceFrequency.DisabledBackColor = BColor;
+                    this.comboBoxForceFrequency.DisabledForeColor = FColor;
+                    this.comboBoxForceFrequency.BackColor = BColor;
+                    this.comboBoxForceFrequency.ForeColor = FColor;
+                }
+                else
+                {
+                    control.BackColor = BColor;
+                    control.ForeColor = FColor;
+                }
             }
-            catch
-            { }
+            catch(Exception ex)
+            {
+                //Debug.WriteLine(ex.Message, "color");
+            }
             //without this code pb with combo,textbox and conteneur title
             if (control.HasChildren)
             {
@@ -536,6 +561,89 @@ namespace SDRSharp.RTLTCP
         private void RTLTcpSettings_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void InitColorControlForDisabled()
+        {
+            // 
+            // buttonFolderSelect
+            // 
+            this.buttonFolderSelect = new ColorButton() {
+                Location = new System.Drawing.Point(6, 63),
+                Name = "buttonFolderSelect",
+                Size = new System.Drawing.Size(67, 36),
+                TabIndex = 18,
+                Text = "Folder select",
+                UseVisualStyleBackColor = false
+            };
+            this.buttonFolderSelect.Click += new System.EventHandler(this.ButtonFolderSelect_Click);
+
+            // 
+            // buttonFilesSelect
+            // 
+            this.buttonFilesSelect = new ColorButton()
+            {
+                BackColor = System.Drawing.SystemColors.Window,
+                ForeColor = System.Drawing.SystemColors.WindowText,
+                Location = new System.Drawing.Point(6, 19),
+                Name = "buttonFilesSelect",
+                Size = new System.Drawing.Size(67, 36),
+                TabIndex = 18,
+                Text = "Files select",
+                UseVisualStyleBackColor = false
+            };
+            this.buttonFilesSelect.Click += new System.EventHandler(this.ButtonFilesSelect_Click);
+            // 
+            // groupBoxRbSr
+            // 
+            this.groupBoxRbSr = new ColorGroupBox()
+            {
+                AutoSize = true,
+                Location = new System.Drawing.Point(326, 20),
+                Name = "groupBoxRbSr",
+                Size = new System.Drawing.Size(144, 268),
+                TabIndex = 21,
+                TabStop = false,
+                Text = "Sample rate"
+            };
+            // 
+            // comboBoxForceFrequency
+            // 
+            this.comboBoxForceFrequency = new ColorComboBoxFakeDisabled()
+            {
+                FormatString = "N0",
+                BackColor = System.Drawing.SystemColors.Window,
+                ForeColor = System.Drawing.SystemColors.WindowText,
+                FormattingEnabled = true,
+                Location = new System.Drawing.Point(176, 78),
+                Name = "comboBoxForceFrequency",
+                Size = new System.Drawing.Size(129, 21),
+                DrawMode = DrawMode.OwnerDrawFixed,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                TabIndex = 32
+            };
+            this.comboBoxForceFrequency.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ComboBoxForceFrequency_KeyPress);
+            // 
+            // comboBoxForceSampleRate
+            //
+            this.comboBoxForceSampleRate = new ColorComboBoxFakeDisabled()
+            {
+                FormatString = "N0",
+                FormattingEnabled = true,
+                Location = new System.Drawing.Point(176, 38),
+                Name = "comboBoxForceSampleRate",
+                Size = new System.Drawing.Size(129, 21),
+                TabIndex = 32,
+                DrawMode = DrawMode.OwnerDrawFixed,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            this.comboBoxForceSampleRate.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ComboBoxForceSampleRate_KeyPress);
+
+            this.groupBoxTCPServer.Controls.Add(this.comboBoxForceSampleRate);
+            this.groupBoxTCPServer.Controls.Add(this.comboBoxForceFrequency);
+            this.groupBoxTCPServer.Controls.Add(this.buttonFolderSelect);
+            this.groupBoxTCPServer.Controls.Add(this.buttonFilesSelect);
+            this.groupBoxServer.Controls.Add(this.groupBoxRbSr);
         }
     }
 }
