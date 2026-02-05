@@ -1,0 +1,40 @@
+name: Sign Release Artifacts
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Download release assets
+        uses: actions/download-release-asset@v1
+        with:
+          tag: ${{ github.event.release.tag_name }}
+
+      - name: Sign each asset
+        shell: bash
+        run: |
+          for file in *; do
+            if [[ -f "$file" ]]; then
+              echo "Signing $file"
+              cosign sign-blob \
+                --yes \
+                --output-signature "$file.sig" \
+                "$file"
+            fi
+          done
+
+      - name: Upload signatures
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.sig"
